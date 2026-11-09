@@ -41,9 +41,10 @@ export const executeSearch = async (input: {
     const results: Chunk[] = [];
 
     const search = async (q: string) => {
-      const res = await searchSearxng(q, {
-        ...(input.searchConfig ? input.searchConfig : {}),
-      });
+      try {
+        const res = await searchSearxng(q, {
+          ...(input.searchConfig ? input.searchConfig : {}),
+        });
 
       let resultChunks: Chunk[] = [];
 
@@ -123,7 +124,10 @@ export const executeSearch = async (input: {
           },
         ]);
       }
-    };
+    } catch (err) {
+      console.warn(`Search failed for query "${q}":`, err);
+    }
+  };
 
     await Promise.all(input.queries.map(search));
 
@@ -176,62 +180,66 @@ export const executeSearch = async (input: {
     const searchResults: Chunk[] = [];
 
     const search = async (q: string) => {
-      const res = await searchSearxng(q, {
-        ...(input.searchConfig ? input.searchConfig : {}),
-      });
-
-      let resultChunks: Chunk[] = [];
-
-      resultChunks = res.results.map((r) => {
-        const content = r.content || r.title;
-
-        return {
-          content,
-          metadata: {
-            title: r.title,
-            url: r.url,
-            similarity: 1,
-            embedding: [],
-          },
-        };
-      });
-
-      searchResults.push(...resultChunks);
-
-      if (!searchResultsEmitted) {
-        searchResultsEmitted = true;
-
-        researchBlock.data.subSteps.push({
-          id: searchResultsBlockId,
-          type: 'search_results',
-          reading: resultChunks,
+      try {
+        const res = await searchSearxng(q, {
+          ...(input.searchConfig ? input.searchConfig : {}),
         });
 
-        input.session.updateBlock(researchBlock.id, [
-          {
-            op: 'replace',
-            path: '/data/subSteps',
-            value: researchBlock.data.subSteps,
-          },
-        ]);
-      } else if (searchResultsEmitted) {
-        const subStepIndex = researchBlock.data.subSteps.findIndex(
-          (step) => step.id === searchResultsBlockId,
-        );
+        let resultChunks: Chunk[] = [];
 
-        const subStep = researchBlock.data.subSteps[
-          subStepIndex
-        ] as SearchResultsResearchBlock;
+        resultChunks = res.results.map((r) => {
+          const content = r.content || r.title;
 
-        subStep.reading.push(...resultChunks);
+          return {
+            content,
+            metadata: {
+              title: r.title,
+              url: r.url,
+              similarity: 1,
+              embedding: [],
+            },
+          };
+        });
 
-        input.session.updateBlock(researchBlock.id, [
-          {
-            op: 'replace',
-            path: '/data/subSteps',
-            value: researchBlock.data.subSteps,
-          },
-        ]);
+        searchResults.push(...resultChunks);
+
+        if (!searchResultsEmitted) {
+          searchResultsEmitted = true;
+
+          researchBlock.data.subSteps.push({
+            id: searchResultsBlockId,
+            type: 'search_results',
+            reading: resultChunks,
+          });
+
+          input.session.updateBlock(researchBlock.id, [
+            {
+              op: 'replace',
+              path: '/data/subSteps',
+              value: researchBlock.data.subSteps,
+            },
+          ]);
+        } else if (searchResultsEmitted) {
+          const subStepIndex = researchBlock.data.subSteps.findIndex(
+            (step) => step.id === searchResultsBlockId,
+          );
+
+          const subStep = researchBlock.data.subSteps[
+            subStepIndex
+          ] as SearchResultsResearchBlock;
+
+          subStep.reading.push(...resultChunks);
+
+          input.session.updateBlock(researchBlock.id, [
+            {
+              op: 'replace',
+              path: '/data/subSteps',
+              value: researchBlock.data.subSteps,
+            },
+          ]);
+        }
+      } catch (err) {
+        console.warn(`Quality search failed for query "${q}":`, err);
       }
     };
 
@@ -269,22 +277,33 @@ export const executeSearch = async (input: {
         ),
     });
 
-    const pickerResponse = await input.llm.generateObject<typeof pickerSchema>({
-      schema: pickerSchema,
-      messages: [
-        {
-          role: 'system',
-          content: pickerPrompt,
-        },
-        {
-          role: 'user',
-          content: `<queries>${input.queries.join(', ')}</queries>\n<search_results>${searchResults.map((result, index) => `<result indice=${index}>${JSON.stringify(result)}</result>`).join('\n')}</search_results>`,
-        },
-      ],
-    });
+    let pickedIndices: number[] = [0, 1, 2];
 
-    const pickedIndices = pickerResponse.picked_indices.slice(0, 3);
+    try {
+      if (searchResults.length > 0) {
+        const pickerResponse = await input.llm.generateObject<typeof pickerSchema>({
+          schema: pickerSchema,
+          messages: [
+            {
+              role: 'system',
+              content: pickerPrompt,
+            },
+            {
+              role: 'user',
+              content: `<queries>${input.queries.join(', ')}</queries>\n<search_results>${searchResults.map((result, index) => `<result indice=${index}>${JSON.stringify(result)}</result>`).join('\n')}</search_results>`,
+            },
+          ],
+        });
+        if (Array.isArray(pickerResponse.picked_indices) && pickerResponse.picked_indices.length > 0) {
+          pickedIndices = pickerResponse.picked_indices;
+        }
+      }
+    } catch (pickerErr) {
+      console.warn('Picker error, falling back to top results:', pickerErr);
+    }
+
     const pickedResults = pickedIndices
+      .slice(0, 3)
       .map((i) => searchResults[i])
       .filter((r) => r !== undefined);
 
@@ -401,6 +420,10 @@ export const executeSearch = async (input: {
               }
             }),
           );
+
+          if (!accumulatedContent.trim()) {
+            accumulatedContent = scrapedData.content.slice(0, 2000);
+          }
 
           extractedFacts.push({
             ...result,

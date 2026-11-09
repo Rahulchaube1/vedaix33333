@@ -24,49 +24,72 @@ const providerConfigFields: UIConfigField[] = [
   },
 ];
 
+const fallbackGeminiChatModels: Model[] = [
+  { key: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+  { key: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+  { key: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+];
+
+const fallbackGeminiEmbeddingModels: Model[] = [
+  { key: 'text-embedding-004', name: 'Text Embedding 004' },
+];
+
 class GeminiProvider extends BaseModelProvider<GeminiConfig> {
   constructor(id: string, name: string, config: GeminiConfig) {
     super(id, name, config);
   }
 
   async getDefaultModels(): Promise<ModelList> {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${this.config.apiKey}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models?key=${this.config.apiKey}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          signal: AbortSignal.timeout(6000),
         },
-      },
-    );
+      );
 
-    const data = await res.json();
+      if (res.ok) {
+        const data = await res.json();
+        let defaultEmbeddingModels: Model[] = [];
+        let defaultChatModels: Model[] = [];
 
-    let defaultEmbeddingModels: Model[] = [];
-    let defaultChatModels: Model[] = [];
+        if (Array.isArray(data.models)) {
+          data.models.forEach((m: any) => {
+            if (
+              m.supportedGenerationMethods?.some(
+                (genMethod: string) =>
+                  genMethod === 'embedText' || genMethod === 'embedContent',
+              )
+            ) {
+              defaultEmbeddingModels.push({
+                key: m.name,
+                name: m.displayName || m.name,
+              });
+            } else if (m.supportedGenerationMethods?.includes('generateContent')) {
+              defaultChatModels.push({
+                key: m.name,
+                name: m.displayName || m.name,
+              });
+            }
+          });
 
-    data.models.forEach((m: any) => {
-      if (
-        m.supportedGenerationMethods.some(
-          (genMethod: string) =>
-            genMethod === 'embedText' || genMethod === 'embedContent',
-        )
-      ) {
-        defaultEmbeddingModels.push({
-          key: m.name,
-          name: m.displayName,
-        });
-      } else if (m.supportedGenerationMethods.includes('generateContent')) {
-        defaultChatModels.push({
-          key: m.name,
-          name: m.displayName,
-        });
+          return {
+            embedding: defaultEmbeddingModels.length > 0 ? defaultEmbeddingModels : fallbackGeminiEmbeddingModels,
+            chat: defaultChatModels.length > 0 ? defaultChatModels : fallbackGeminiChatModels,
+          };
+        }
       }
-    });
+    } catch (err) {
+      console.warn('Failed to fetch Gemini models, using defaults:', err);
+    }
 
     return {
-      embedding: defaultEmbeddingModels,
-      chat: defaultChatModels,
+      embedding: fallbackGeminiEmbeddingModels,
+      chat: fallbackGeminiChatModels,
     };
   }
 

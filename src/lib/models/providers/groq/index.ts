@@ -26,43 +26,68 @@ const providerConfigFields: UIConfigField[] = [
   },
 ];
 
+const fallbackGroqChatModels: Model[] = [
+  { key: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B Versatile' },
+  { key: 'deepseek-r1-distill-llama-70b', name: 'DeepSeek R1 Distill Llama 70B' },
+  { key: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B Instant' },
+  { key: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B' },
+  { key: 'gemma2-9b-it', name: 'Gemma 2 9B' },
+];
+
 class GroqProvider extends BaseModelProvider<GroqConfig> {
   constructor(id: string, name: string, config: GroqConfig) {
     super(id, name, config);
   }
 
   async getDefaultModels(): Promise<ModelList> {
-    const res = await fetch(`https://api.groq.com/openai/v1/models`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.config.apiKey}`,
-      },
-    });
-
-    const data = await res.json();
-
-    const defaultChatModels: Model[] = [];
-
-    data.data
-      .filter((m: any) => supportsChatCompletions(m.id))
-      .sort((a: any, b: any) => {
-        const preferred = ['openai/gpt-oss-20b', 'qwen/qwen3.8-27b'];
-        const aIndex = preferred.indexOf(a.id);
-        const bIndex = preferred.indexOf(b.id);
-        return (aIndex === -1 ? preferred.length : aIndex) -
-          (bIndex === -1 ? preferred.length : bIndex);
-      })
-      .forEach((m: any) => {
-        defaultChatModels.push({
-          key: m.id,
-          name: m.id,
-        });
+    try {
+      const res = await fetch(`https://api.groq.com/openai/v1/models`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.config.apiKey}`,
+        },
+        signal: AbortSignal.timeout(6000),
       });
+
+      if (res.ok) {
+        const data = await res.json();
+        const defaultChatModels: Model[] = [];
+
+        data.data
+          .filter((m: any) => supportsChatCompletions(m.id))
+          .sort((a: any, b: any) => {
+            const preferred = [
+              'llama-3.3-70b-versatile',
+              'deepseek-r1-distill-llama-70b',
+              'llama-3.1-8b-instant',
+            ];
+            const aIndex = preferred.indexOf(a.id);
+            const bIndex = preferred.indexOf(b.id);
+            return (aIndex === -1 ? preferred.length : aIndex) -
+              (bIndex === -1 ? preferred.length : bIndex);
+          })
+          .forEach((m: any) => {
+            defaultChatModels.push({
+              key: m.id,
+              name: m.id,
+            });
+          });
+
+        if (defaultChatModels.length > 0) {
+          return {
+            embedding: [],
+            chat: defaultChatModels,
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch Groq models, using fallback list:', err);
+    }
 
     return {
       embedding: [],
-      chat: defaultChatModels,
+      chat: fallbackGroqChatModels,
     };
   }
 

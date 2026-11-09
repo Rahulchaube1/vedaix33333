@@ -23,37 +23,52 @@ const providerConfigFields: UIConfigField[] = [
   },
 ];
 
+const fallbackAnthropicChatModels: Model[] = [
+  { key: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
+  { key: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
+  { key: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
+];
+
 class AnthropicProvider extends BaseModelProvider<AnthropicConfig> {
   constructor(id: string, name: string, config: AnthropicConfig) {
     super(id, name, config);
   }
 
   async getDefaultModels(): Promise<ModelList> {
-    const res = await fetch('https://api.anthropic.com/v1/models?limit=999', {
-      method: 'GET',
-      headers: {
-        'x-api-key': this.config.apiKey,
-        'anthropic-version': '2023-06-01',
-        'Content-type': 'application/json',
-      },
-    });
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/models?limit=999', {
+        method: 'GET',
+        headers: {
+          'x-api-key': this.config.apiKey,
+          'anthropic-version': '2023-06-01',
+          'Content-type': 'application/json',
+        },
+        signal: AbortSignal.timeout(6000),
+      });
 
-    if (!res.ok) {
-      throw new Error(`Failed to fetch Anthropic models: ${res.statusText}`);
+      if (res.ok) {
+        const data = (await res.json()).data;
+        if (Array.isArray(data) && data.length > 0) {
+          const models: Model[] = data.map((m: any) => {
+            return {
+              key: m.id,
+              name: m.display_name || m.id,
+            };
+          });
+
+          return {
+            embedding: [],
+            chat: models,
+          };
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch Anthropic models, using defaults:', err);
     }
-
-    const data = (await res.json()).data;
-
-    const models: Model[] = data.map((m: any) => {
-      return {
-        key: m.id,
-        name: m.display_name,
-      };
-    });
 
     return {
       embedding: [],
-      chat: models,
+      chat: fallbackAnthropicChatModels,
     };
   }
 

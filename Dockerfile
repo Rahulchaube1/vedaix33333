@@ -4,6 +4,8 @@ RUN apt-get update && apt-get install -y python3 python3-pip sqlite3 && rm -rf /
 
 WORKDIR /home/vane
 
+ENV ONNXRUNTIME_NODE_INSTALL_CUDA=skip
+
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile --network-timeout 600000
 

@@ -17,7 +17,10 @@ class ConfigManager {
     personalization: {},
     modelProviders: [],
     search: {
+      provider: 'auto',
       searxngURL: '',
+      tavilyApiKey: '',
+      braveApiKey: '',
     },
   };
   uiConfigSections: UIConfigSections = {
@@ -103,15 +106,69 @@ class ConfigManager {
     modelProviders: [],
     search: [
       {
+        name: 'Search Engine Provider',
+        key: 'provider',
+        type: 'select',
+        options: [
+          {
+            name: 'Auto / Hybrid (SearXNG with DuckDuckGo Fallback)',
+            value: 'auto',
+          },
+          {
+            name: 'DuckDuckGo (Open-Source / Free Web Search)',
+            value: 'duckduckgo',
+          },
+          {
+            name: 'SearXNG (Self-Hosted / Open-Source)',
+            value: 'searxng',
+          },
+          {
+            name: 'Tavily Search (AI-Optimized)',
+            value: 'tavily',
+          },
+          {
+            name: 'Brave Search',
+            value: 'brave',
+          },
+        ],
+        required: false,
+        description: 'Choose your preferred search engine. Fallbacks ensure search never fails.',
+        default: 'auto',
+        scope: 'server',
+        env: 'SEARCH_PROVIDER',
+      },
+      {
         name: 'SearXNG URL',
         key: 'searxngURL',
         type: 'string',
         required: false,
-        description: 'The URL of your SearXNG instance',
-        placeholder: 'http://localhost:4000',
+        description: 'The URL of your SearXNG instance (default: http://localhost:8080)',
+        placeholder: 'http://localhost:8080',
         default: '',
         scope: 'server',
         env: 'SEARXNG_API_URL',
+      },
+      {
+        name: 'Tavily API Key',
+        key: 'tavilyApiKey',
+        type: 'password',
+        required: false,
+        description: 'Optional API key for Tavily AI search',
+        placeholder: 'tvly-xxxx...',
+        default: '',
+        scope: 'server',
+        env: 'TAVILY_API_KEY',
+      },
+      {
+        name: 'Brave Search API Key',
+        key: 'braveApiKey',
+        type: 'password',
+        required: false,
+        description: 'Optional API key for Brave Search',
+        placeholder: 'BSAxxxx...',
+        default: '',
+        scope: 'server',
+        env: 'BRAVE_API_KEY',
       },
     ],
   };

@@ -8,16 +8,24 @@ import GroqProvider from './groq';
 import LemonadeProvider from './lemonade';
 import AnthropicProvider from './anthropic';
 import LMStudioProvider from './lmstudio';
+import DeepSeekProvider from './deepseek';
+import OpenRouterProvider from './openrouter';
+import MistralProvider from './mistral';
+import TogetherProvider from './together';
 
 export const providers: Record<string, ProviderConstructor<any>> = {
   openai: OpenAIProvider,
-  ollama: OllamaProvider,
-  gemini: GeminiProvider,
-  transformers: TransformersProvider,
+  deepseek: DeepSeekProvider,
+  openrouter: OpenRouterProvider,
   groq: GroqProvider,
-  lemonade: LemonadeProvider,
   anthropic: AnthropicProvider,
+  gemini: GeminiProvider,
+  mistral: MistralProvider,
+  together: TogetherProvider,
+  ollama: OllamaProvider,
   lmstudio: LMStudioProvider,
+  transformers: TransformersProvider,
+  lemonade: LemonadeProvider,
 };
 
 export const getModelProvidersUIConfigSection =

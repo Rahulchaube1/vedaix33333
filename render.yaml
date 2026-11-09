@@ -4,22 +4,60 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    plan: free
+    plan: starter
+    domains:
+      - vedaix.com
+      - www.vedaix.com
     healthCheckPath: /
     envVars:
+      - key: PORT
+        value: 3000
       - key: DATA_DIR
-        value: /home/vane
+        value: /home/vane/data
       - key: NEXT_PUBLIC_APP_URL
         value: https://vedaix.com
       - key: SEARXNG_API_URL
         value: http://localhost:8080
+      - key: SEARCH_PROVIDER
+        value: auto
+      # NextAuth Secrets
       - key: AUTH_SECRET
         generateValue: true
+      # Google OAuth
       - key: AUTH_GOOGLE_ID
         sync: false
       - key: AUTH_GOOGLE_SECRET
         sync: false
+      # Auth0 OAuth
+      - key: AUTH_AUTH0_ID
+        sync: false
+      - key: AUTH_AUTH0_SECRET
+        sync: false
+      - key: AUTH_AUTH0_ISSUER
+        sync: false
+      # Model Providers (Open Source & Commercial)
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: TOGETHER_API_KEY
+        sync: false
+      # Search Engines
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: BRAVE_API_KEY
+        sync: false
     disk:
       name: vedaix-data
-      mountPath: /home/vane
+      mountPath: /home/vane/data
       sizeGB: 1
