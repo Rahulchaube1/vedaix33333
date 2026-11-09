@@ -25,6 +25,42 @@ const websitesForTopic = {
 
 type Topic = keyof typeof websitesForTopic;
 
+const decodeXml = (value: string) =>
+  value
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+
+const searchNewsFallback = async (query: string) => {
+  const url = new URL('https://news.google.com/rss/search');
+  url.searchParams.set('q', query);
+  url.searchParams.set('hl', 'en-US');
+  url.searchParams.set('gl', 'US');
+  url.searchParams.set('ceid', 'US:en');
+
+  const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  if (!response.ok) return [];
+
+  const xml = await response.text();
+  return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((match) => {
+    const item = match[1];
+    const title = decodeXml(item.match(/<title>([\s\S]*?)<\/title>/)?.[1] || '');
+    const link = decodeXml(item.match(/<link>([\s\S]*?)<\/link>/)?.[1] || '');
+
+    return {
+      title,
+      url: link,
+      content: decodeXml(item.match(/<description>([\s\S]*?)<\/description>/)?.[1] || ''),
+      thumbnail: link
+        ? `https://www.google.com/s2/favicons?domain=${new URL(link).hostname}&sz=128`
+        : '',
+    };
+  });
+};
+
 const safeSearch = async (query: string) => {
   try {
     return (
@@ -36,7 +72,12 @@ const safeSearch = async (query: string) => {
     ).results;
   } catch (error) {
     console.error(`Discover search failed for "${query}":`, error);
-    return [];
+    try {
+      return await searchNewsFallback(query);
+    } catch (fallbackError) {
+      console.error(`Discover fallback failed for "${query}":`, fallbackError);
+      return [];
+    }
   }
 };
 

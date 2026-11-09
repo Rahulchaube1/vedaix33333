@@ -24,6 +24,7 @@ type OpenAIConfig = {
   apiKey: string;
   model: string;
   baseURL?: string;
+  supportsStructuredOutputs?: boolean;
   options?: GenerateOptions;
 };
 
@@ -223,28 +224,37 @@ class OpenAILLM extends BaseLLM<OpenAIConfig> {
       }
     };
 
-    try {
-      const response = await this.openAIClient.chat.completions.parse({
-        ...request,
-        response_format: zodResponseFormat(input.schema, 'object'),
-      });
-      return parseResponse(response.choices[0]?.message.content || null);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      if (!/json output|response_format|structured output/i.test(message)) {
-        throw error;
-      }
+    const fallbackMessages = [...request.messages];
+    const firstMessage = fallbackMessages[0];
+    if (firstMessage?.role === 'system') {
+      firstMessage.content = `${firstMessage.content}\nReturn only valid JSON matching this schema: ${JSON.stringify(z.toJSONSchema(input.schema))}`;
+    }
 
-      const fallbackMessages = [...request.messages];
-      const firstMessage = fallbackMessages[0];
-      if (firstMessage?.role === 'system') {
-        firstMessage.content = `${firstMessage.content}\nReturn only valid JSON matching this schema: ${JSON.stringify(z.toJSONSchema(input.schema))}`;
-      }
-
-      const fallback = await this.openAIClient.chat.completions.create({
+    const createFallbackResponse = () =>
+      this.openAIClient.chat.completions.create({
         ...request,
         messages: fallbackMessages,
       });
+
+    try {
+      const response =
+        this.config.supportsStructuredOutputs === false
+          ? await createFallbackResponse()
+          : await this.openAIClient.chat.completions.parse({
+              ...request,
+              response_format: zodResponseFormat(input.schema, 'object'),
+            });
+      return parseResponse(response.choices[0]?.message.content || null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (
+        this.config.supportsStructuredOutputs === false ||
+        !/json output|response_format|structured output/i.test(message)
+      ) {
+        throw error;
+      }
+
+      const fallback = await createFallbackResponse();
       return parseResponse(fallback.choices[0]?.message.content || null);
     }
   }

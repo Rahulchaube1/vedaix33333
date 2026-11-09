@@ -80,6 +80,7 @@ class GroqProvider extends BaseModelProvider<GroqConfig> {
       apiKey: this.config.apiKey,
       model: key,
       baseURL: 'https://api.groq.com/openai/v1',
+      supportsStructuredOutputs: false,
     });
   }
 
