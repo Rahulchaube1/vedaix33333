@@ -17,22 +17,30 @@ export interface Chat {
 const Page = () => {
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchChats = async () => {
       setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`/api/chats`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await res.json();
 
-      const res = await fetch(`/api/chats`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await res.json();
-
-      setChats(data.chats);
-      setLoading(false);
+        if (!res.ok) throw new Error(data.message || 'Unable to load chats');
+        setChats(Array.isArray(data.chats) ? data.chats : []);
+      } catch (err) {
+        console.error('Error fetching chats:', err);
+        setChats([]);
+        setError('Your library is temporarily unavailable. Try again in a moment.');
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchChats();
@@ -46,8 +54,7 @@ const Page = () => {
             <BookOpenText size={45} className="mb-2.5" />
             <div className="flex flex-col">
               <h1
-                className="text-5xl font-normal p-2 pb-0"
-                style={{ fontFamily: 'PP Editorial, serif' }}
+                className="p-2 pb-0 text-3xl font-semibold tracking-tight sm:text-4xl"
               >
                 Library
               </h1>
@@ -67,6 +74,19 @@ const Page = () => {
           </div>
         </div>
       </div>
+
+      {error && !loading && (
+        <div className="mx-2 mt-5 flex items-center justify-between gap-4 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3 text-sm text-black/70 dark:text-white/70">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="shrink-0 rounded-lg bg-white/10 px-3 py-1.5 font-medium text-black dark:text-white"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex flex-row items-center justify-center min-h-[60vh]">

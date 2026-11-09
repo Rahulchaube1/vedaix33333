@@ -19,3 +19,7 @@ services:
         sync: false
       - key: AUTH_GOOGLE_SECRET
         sync: false
+    disk:
+      name: vedaix-data
+      mountPath: /home/vane
+      sizeGB: 1

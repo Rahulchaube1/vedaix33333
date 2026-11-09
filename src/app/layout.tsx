@@ -1,25 +1,26 @@
 export const dynamic = 'force-dynamic';
 
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
+import { cn } from '@/lib/utils';
 import Sidebar from '@/components/Sidebar';
 import { Toaster } from 'sonner';
 import ThemeProvider from '@/components/theme/Provider';
 import configManager from '@/lib/config';
 import SetupWizard from '@/components/Setup/SetupWizard';
 import { ChatProvider } from '@/lib/hooks/useChat';
-import AuthProvider from '@/components/auth/AuthProvider';
-import { Geist } from "next/font/google";
-import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  fallback: ['sans-serif'],
+});
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || 'https://vedaix.com',
-  ),
-  title: 'Vedaix - Search beyond the obvious',
-  description: 'Vedaix is an AI-powered answering engine for curious minds.',
+  title: 'Vedaix - Research, clearly',
+  description: 'Vedaix is a private AI research workspace with cited answers.',
 };
 
 export default function RootLayout({
@@ -31,27 +32,25 @@ export default function RootLayout({
   const configSections = configManager.getUIConfigSections();
 
   return (
-    <html className={cn("h-full", "font-sans", geist.variable)} lang="en" suppressHydrationWarning>
-      <body className="h-full antialiased font-sans">
+    <html className="h-full" lang="en" suppressHydrationWarning>
+      <body className={cn('h-full antialiased', inter.className)}>
         <ThemeProvider>
-          <AuthProvider>
-            {setupComplete ? (
-              <ChatProvider>
-                <Sidebar>{children}</Sidebar>
-                <Toaster
-                  toastOptions={{
-                    unstyled: true,
-                    classNames: {
-                      toast:
-                        'bg-light-secondary dark:bg-dark-secondary dark:text-white/70 text-black-70 rounded-lg p-4 flex flex-row items-center space-x-2',
-                    },
-                  }}
-                />
-              </ChatProvider>
-            ) : (
-              <SetupWizard configSections={configSections} />
-            )}
-          </AuthProvider>
+          {setupComplete ? (
+            <ChatProvider>
+              <Sidebar>{children}</Sidebar>
+              <Toaster
+                toastOptions={{
+                  unstyled: true,
+                  classNames: {
+                    toast:
+                      'bg-light-secondary dark:bg-dark-secondary dark:text-white/70 text-black-70 rounded-lg p-4 flex flex-row items-center space-x-2',
+                  },
+                }}
+              />
+            </ChatProvider>
+          ) : (
+            <SetupWizard configSections={configSections} />
+          )}
         </ThemeProvider>
       </body>
     </html>

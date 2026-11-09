@@ -1,9 +1,7 @@
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <main className="min-h-screen bg-light-primary text-black dark:bg-dark-primary dark:text-white lg:pl-[248px]">
-      <div className="mx-auto min-h-screen max-w-[1180px] px-4 sm:px-6 lg:px-10">
-        {children}
-      </div>
+    <main className="min-h-screen bg-light-primary dark:bg-[#0b0d10] lg:pl-64">
+      <div className="mx-4 max-w-6xl lg:mx-auto">{children}</div>
     </main>
   );
 };

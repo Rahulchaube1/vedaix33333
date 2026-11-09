@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Vedaix - Search Beyond the Obvious',
+    name: 'Vedaix - Research, clearly',
     short_name: 'Vedaix',
-    description: 'Vedaix is an AI-powered answering engine.',
+    description: 'A private AI research workspace with cited answers.',
     start_url: '/',
     display: 'standalone',
     background_color: '#0a0a0a',

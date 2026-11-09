@@ -25,6 +25,21 @@ const websitesForTopic = {
 
 type Topic = keyof typeof websitesForTopic;
 
+const safeSearch = async (query: string) => {
+  try {
+    return (
+      await searchSearxng(query, {
+        engines: ['bing news'],
+        pageno: 1,
+        language: 'en',
+      })
+    ).results;
+  } catch (error) {
+    console.error(`Discover search failed for "${query}":`, error);
+    return [];
+  }
+};
+
 export const GET = async (req: Request) => {
   try {
     const params = new URL(req.url).searchParams;
@@ -44,13 +59,7 @@ export const GET = async (req: Request) => {
         await Promise.all(
           selectedTopic.links.flatMap((link) =>
             selectedTopic.query.map(async (query) => {
-              return (
-                await searchSearxng(`site:${link} ${query}`, {
-                  engines: ['bing news'],
-                  pageno: 1,
-                  language: 'en',
-                })
-              ).results;
+              return safeSearch(`site:${link} ${query}`);
             }),
           ),
         )
@@ -65,20 +74,16 @@ export const GET = async (req: Request) => {
         .sort(() => Math.random() - 0.5);
     } else {
       data = (
-        await searchSearxng(
+        await safeSearch(
           `site:${selectedTopic.links[Math.floor(Math.random() * selectedTopic.links.length)]} ${selectedTopic.query[Math.floor(Math.random() * selectedTopic.query.length)]}`,
-          {
-            engines: ['bing news'],
-            pageno: 1,
-            language: 'en',
-          },
         )
-      ).results;
+      );
     }
 
     return Response.json(
       {
         blogs: data,
+        degraded: data.length === 0,
       },
       {
         status: 200,

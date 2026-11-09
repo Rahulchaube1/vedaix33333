@@ -1,18 +1,14 @@
-# Vane 🔍
+# Vedaix 🔍
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/ItzCrazyKns/Vane?style=social)](https://github.com/ItzCrazyKns/Vane/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/ItzCrazyKns/Vane?style=social)](https://github.com/ItzCrazyKns/Vane/network/members)
-[![GitHub watchers](https://img.shields.io/github/watchers/ItzCrazyKns/Vane?style=social)](https://github.com/ItzCrazyKns/Vane/watchers)
-[![Docker Pulls](https://img.shields.io/docker/pulls/itzcrazykns1337/vane?color=blue)](https://hub.docker.com/r/itzcrazykns1337/vane)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ItzCrazyKns/Vane/blob/master/LICENSE)
-[![GitHub last commit](https://img.shields.io/github/last-commit/ItzCrazyKns/Vane?color=green)](https://github.com/ItzCrazyKns/Vane/commits/master)
+[![GitHub](https://img.shields.io/badge/GitHub-Rahulchaube1%2Fvedaix33333-111827)](https://github.com/Rahulchaube1/vedaix33333)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Discord](https://dcbadge.limes.pink/api/server/26aArMy8tT?style=flat)](https://discord.gg/26aArMy8tT)
 
-Vane is a **privacy-focused AI answering engine** that runs entirely on your own hardware. It combines knowledge from the vast internet with support for **local LLMs** (Ollama) and cloud providers (OpenAI, Claude, Groq), delivering accurate answers with **cited sources** while keeping your searches completely private.
+Vedaix is a **privacy-focused AI research workspace** that can run on your own infrastructure. It combines web search, file analysis, citations, chat history, and local or hosted language models in one focused interface.
 
 ![preview](.assets/vane-screenshot.png)
 
-Want to know more about its architecture and how it works? You can read it [here](https://github.com/ItzCrazyKns/Vane/tree/master/docs/architecture/README.md).
+Vedaix keeps your provider credentials in its local configuration and supports web research, citations, files, chat history, Discover, and Library from one workspace.
 
 ## ✨ Features
 
@@ -28,7 +24,7 @@ Want to know more about its architecture and how it works? You can read it [here
 
 📷 **Image and video search** - Find visual content alongside text results. Search isn't limited to just articles anymore.
 
-📄 **File uploads** - Upload documents and ask questions about them. PDFs, text files, images - Vane understands them all.
+📄 **File uploads** - Upload documents and ask questions about them. PDFs, text files, and images are supported.
 
 🌐 **Search specific domains** - Limit your search to specific websites when you know where to look. Perfect for technical documentation or research papers.
 
@@ -38,11 +34,11 @@ Want to know more about its architecture and how it works? You can read it [here
 
 🕒 **Search history** - Every search is saved locally so you can revisit your discoveries anytime. Your research is never lost.
 
-✨ **More coming soon** - We're actively developing new features based on community feedback. Join our Discord to help shape Vane's future!
+✨ **Extensible providers** - Connect local and hosted models from Settings > Models.
 
 ## Sponsors
 
-Vane's development is powered by the generous support of our sponsors. Their contributions help keep this project free, open-source, and accessible to everyone.
+Vedaix is an open-source research workspace. Contributions and issue reports are welcome.
 
 We'd like to thank the following partners for their generous support:
 
@@ -71,26 +67,33 @@ https://vedaix.com/api/auth/callback/google
 
 Set `NEXT_PUBLIC_APP_URL` to the final public URL if the custom domain is different. Add `vedaix.com` as a custom domain in Render and point its DNS records to the values Render provides.
 
-There are mainly 2 ways of installing Vane - With Docker, Without Docker. Using Docker is highly recommended.
+There are mainly 2 ways of installing Vedaix - with Docker or from source. Docker is recommended for a bundled SearxNG instance.
+
+## Deploy on Render
+
+This repository includes a `render.yaml` Blueprint. In Render, choose **New > Blueprint**, connect your GitHub repository, and deploy the blueprint. Set `SEARXNG_API_URL` to a reachable SearxNG instance with JSON output enabled. Render's persistent disk is mounted at `/opt/render/project/src/data` for SQLite data and uploads.
+
+AI providers are configured after the first launch from **Settings > Models**. Add only the providers you have credentials for: OpenAI-compatible endpoints, Anthropic, Gemini, Groq, Ollama, LM Studio, Lemonade, or local Transformers models. Vedaix cannot activate paid providers without their own API keys.
 
 ### Getting Started with Docker (Recommended)
 
-Vane can be easily run using Docker. Simply run the following command:
+Vedaix can be run with Docker. Build the image from this repository:
 
 ```bash
-docker run -d -p 3000:3000 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:latest
+docker build -t vedaix .
+docker run -d -p 3000:3000 -v vedaix-data:/home/vane/data --name vedaix vedaix
 ```
 
-This will pull and start the Vane container with the bundled SearxNG search engine. Once running, open your browser and navigate to http://localhost:3000. You can then configure your settings (API keys, models, etc.) directly in the setup screen.
+This starts Vedaix with the bundled SearxNG search engine. Open http://localhost:3000 and configure your providers in the setup screen.
 
-**Note**: The image includes both Vane and SearxNG, so no additional setup is required. The `-v` flags create persistent volumes for your data and uploaded files.
+**Note**: The image includes both Vedaix and SearxNG. The volume keeps your SQLite data and uploads persistent.
 
-#### Using Vane with Your Own SearxNG Instance
+#### Using Vedaix with Your Own SearxNG Instance
 
-If you already have SearxNG running, you can use the slim version of Vane:
+If you already have SearxNG running, set its URL when starting Vedaix:
 
 ```bash
-docker run -d -p 3000:3000 -e SEARXNG_API_URL=http://your-searxng-url:8080 -v vane-data:/home/vane/data --name vane itzcrazykns1337/vane:slim-latest
+docker run -d -p 3000:3000 -e SEARXNG_API_URL=http://your-searxng-url:8080 -v vedaix-data:/home/vane/data --name vedaix vedaix
 ```
 
 **Important**: Make sure your SearxNG instance has:
@@ -105,10 +108,10 @@ Replace `http://your-searxng-url:8080` with your actual SearxNG URL. Then config
 If you prefer to build from source or need more control:
 
 1. Ensure Docker is installed and running on your system.
-2. Clone the Vane repository:
+2. Clone the Vedaix repository:
 
    ```bash
-   git clone https://github.com/ItzCrazyKns/Vane.git
+   git clone https://github.com/Rahulchaube1/vedaix33333.git
    ```
 
 3. After cloning, navigate to the directory containing the project files.
@@ -116,13 +119,13 @@ If you prefer to build from source or need more control:
 4. Build and run using Docker:
 
    ```bash
-   docker build -t vane .
-   docker run -d -p 3000:3000 -v vane-data:/home/vane/data --name vane vane
+   docker build -t vedaix .
+   docker run -d -p 3000:3000 -v vedaix-data:/home/vane/data --name vedaix vedaix
    ```
 
-5. Access Vane at http://localhost:3000 and configure your settings in the setup screen.
+5. Access Vedaix at http://localhost:3000 and configure your settings in the setup screen.
 
-**Note**: After the containers are built, you can start Vane directly from Docker without having to open a terminal.
+**Note**: After the container is built, you can start Vedaix directly from Docker.
 
 ### Non-Docker Installation
 
@@ -130,8 +133,8 @@ If you prefer to build from source or need more control:
 2. Clone the repository:
 
    ```bash
-   git clone https://github.com/ItzCrazyKns/Vane.git
-   cd Vane
+   git clone https://github.com/Rahulchaube1/vedaix33333.git
+   cd vedaix33333
    ```
 
 3. Install dependencies:
@@ -156,13 +159,13 @@ If you prefer to build from source or need more control:
 
 **Note**: Using Docker is recommended as it simplifies the setup process, especially for managing environment variables and dependencies.
 
-See the [installation documentation](https://github.com/ItzCrazyKns/Vane/tree/master/docs/installation) for more information like updating, etc.
+See the installation section above for source, Docker, and Render deployment details.
 
 ### Troubleshooting
 
 #### Local OpenAI-API-Compliant Servers
 
-If Vane tells you that you haven't configured any chat model providers, ensure that:
+If Vedaix tells you that you haven't configured any chat model providers, ensure that:
 
 1. Your server is running on `0.0.0.0` (not `127.0.0.1`) and on the same port you put in the API URL.
 2. You have specified the correct model name loaded by your local LLM server.
@@ -208,29 +211,28 @@ If you're encountering a Lemonade connection error, it is likely due to the back
 
 ## Using as a Search Engine
 
-If you wish to use Vane as an alternative to traditional search engines like Google or Bing, or if you want to add a shortcut for quick access from your browser's search bar, follow these steps:
+If you wish to use Vedaix as an alternative to traditional search engines like Google or Bing, or if you want to add a shortcut for quick access from your browser's search bar, follow these steps:
 
 1. Open your browser's settings.
 2. Navigate to the 'Search Engines' section.
-3. Add a new site search with the following URL: `http://localhost:3000/?q=%s`. Replace `localhost` with your IP address or domain name, and `3000` with the port number if Vane is not hosted locally.
-4. Click the add button. Now, you can use Vane directly from your browser's search bar.
+3. Add a new site search with the following URL: `http://localhost:3000/?q=%s`. Replace `localhost` with your IP address or domain name, and `3000` with the port number if Vedaix is not hosted locally.
+4. Click the add button. Now, you can use Vedaix directly from your browser's search bar.
 
-## Using Vane's API
+## Using Vedaix's API
 
-Vane also provides an API for developers looking to integrate its powerful search engine into their own applications. You can run searches, use multiple models and get answers to your queries.
+Vedaix provides an API for developers looking to integrate its search engine into their own applications. You can run searches, use multiple models, and get answers to your queries.
 
-For more details, check out the full documentation [here](https://github.com/ItzCrazyKns/Vane/tree/master/docs/API/SEARCH.md).
+See the API route implementations under `src/app/api` for the available endpoints.
 
-## Expose Vane to network
+## Expose Vedaix to network
 
-Vane runs on Next.js and handles all API requests. It works right away on the same network and stays accessible even with port forwarding.
+Vedaix runs on Next.js and handles all API requests. Put it behind HTTPS and configure a reachable SearxNG instance before exposing it publicly.
 
 ## One-Click Deployment
 
 [![Deploy to Sealos](https://raw.githubusercontent.com/labring-actions/templates/main/Deploy-on-Sealos.svg)](https://usw.sealos.io/?openapp=system-template%3FtemplateName%3Dperplexica)
 [![Deploy to RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/?app_id=267)
 [![Run on ClawCloud](https://raw.githubusercontent.com/ClawCloud/Run-Template/refs/heads/main/Run-on-ClawCloud.svg)](https://template.run.claw.cloud/?referralCode=U11MRQ8U9RM4&openapp=system-fastdeploy%3FtemplateName%3Dperplexica)
-[![Deploy on Hostinger](https://assets.hostinger.com/vps/deploy.svg)](https://www.hostinger.com/vps/docker-hosting?compose_url=https://raw.githubusercontent.com/ItzCrazyKns/Vane/refs/heads/master/docker-compose.yaml)
 
 ## Upcoming Features
 
@@ -240,7 +242,7 @@ Vane runs on Next.js and handles all API requests. It works right away on the sa
 
 ## Support Us
 
-If you find Vane useful, consider giving us a star on GitHub. This helps more people discover Vane and supports the development of new features. Your support is greatly appreciated.
+If you find Vedaix useful, consider contributing through the [GitHub repository](https://github.com/Rahulchaube1/vedaix33333).
 
 ### Donations
 
@@ -252,10 +254,10 @@ We also accept donations to help sustain our project. If you would like to contr
 
 ## Contribution
 
-Vane is built on the idea that AI and large language models should be easy for everyone to use. If you find bugs or have ideas, please share them in via GitHub Issues. For more information on contributing to Vane you can read the [CONTRIBUTING.md](CONTRIBUTING.md) file to learn more about Vane and how you can contribute to it.
+Vedaix is built to make AI research tools easy to run and extend. If you find bugs or have ideas, open an issue or read [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Help and Support
 
 If you have any questions or feedback, please feel free to reach out to us. You can create an issue on GitHub or join our Discord server. There, you can connect with other users, share your experiences and reviews, and receive more personalized help. [Click here](https://discord.gg/EFwsmQDgAu) to join the Discord server. To discuss matters outside of regular support, feel free to contact me on Discord at `itzcrazykns`.
 
-Thank you for exploring Vane, the AI-powered search engine designed to enhance your search experience. We are constantly working to improve Vane and expand its capabilities. We value your feedback and contributions which help us make Vane even better. Don't forget to check back for updates and new features!
+Thank you for exploring Vedaix, the AI-powered research workspace designed to make search more useful and transparent.

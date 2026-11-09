@@ -40,10 +40,12 @@ const topics: { key: string; display: string }[] = [
 const Page = () => {
   const [discover, setDiscover] = useState<Discover[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTopic, setActiveTopic] = useState<string>(topics[0].key);
 
   const fetchArticles = async (topic: string) => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`/api/discover?topic=${topic}`, {
         method: 'GET',
@@ -58,12 +60,16 @@ const Page = () => {
         throw new Error(data.message);
       }
 
-      data.blogs = data.blogs.filter((blog: Discover) => blog.thumbnail);
-
-      setDiscover(data.blogs);
+      const blogs = Array.isArray(data.blogs) ? data.blogs : [];
+      setDiscover(blogs.filter((blog: Discover) => blog.thumbnail));
+      if (data.degraded) {
+        setError('Discover needs a reachable SearxNG service before it can load articles.');
+      }
     } catch (err: any) {
       console.error('Error fetching data:', err.message);
-      toast.error('Error fetching data');
+      setDiscover([]);
+      setError('Discover is temporarily unavailable. Check your search service and try again.');
+      toast.error('Could not load Discover');
     } finally {
       setLoading(false);
     }
@@ -81,8 +87,7 @@ const Page = () => {
             <div className="flex items-center justify-center">
               <Globe2Icon size={45} className="mb-2.5" />
               <h1
-                className="text-5xl font-normal p-2"
-                style={{ fontFamily: 'PP Editorial, serif' }}
+                className="p-2 text-3xl font-semibold tracking-tight sm:text-4xl"
               >
                 Discover
               </h1>
@@ -105,6 +110,19 @@ const Page = () => {
             </div>
           </div>
         </div>
+
+        {error && !loading && (
+          <div className="mx-2 mt-5 flex items-center justify-between gap-4 rounded-2xl border border-amber-400/20 bg-amber-400/[0.06] px-4 py-3 text-sm text-black/70 dark:text-white/70">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => fetchArticles(activeTopic)}
+              className="shrink-0 rounded-lg bg-white/10 px-3 py-1.5 font-medium text-black dark:text-white"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex flex-row items-center justify-center min-h-screen">
