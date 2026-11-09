@@ -34,6 +34,31 @@ const decodeXml = (value: string) =>
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>');
 
+const stripMarkup = (value: string) =>
+  decodeXml(value)
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const getFavicon = (url: string) => {
+  try {
+    return `https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(url)}&sz=128`;
+  } catch {
+    return '';
+  }
+};
+
+const normalizeArticle = (item: any) => {
+  if (!item?.url || !item?.title) return null;
+
+  return {
+    ...item,
+    title: stripMarkup(String(item.title)),
+    content: stripMarkup(String(item.content || '')),
+    thumbnail: item.thumbnail || item.thumbnail_src || getFavicon(item.url),
+  };
+};
+
 const searchNewsFallback = async (query: string) => {
   const url = new URL('https://news.google.com/rss/search');
   url.searchParams.set('q', query);
@@ -50,30 +75,29 @@ const searchNewsFallback = async (query: string) => {
     const title = decodeXml(item.match(/<title>([\s\S]*?)<\/title>/)?.[1] || '');
     const link = decodeXml(item.match(/<link>([\s\S]*?)<\/link>/)?.[1] || '');
 
-    return {
+    return normalizeArticle({
       title,
       url: link,
-      content: decodeXml(item.match(/<description>([\s\S]*?)<\/description>/)?.[1] || ''),
-      thumbnail: link
-        ? `https://www.google.com/s2/favicons?domain=${new URL(link).hostname}&sz=128`
-        : '',
-    };
+      content: item.match(/<description>([\s\S]*?)<\/description>/)?.[1] || '',
+      thumbnail: link ? getFavicon(link) : '',
+    });
   });
 };
 
 const safeSearch = async (query: string) => {
   try {
-    return (
+    const results = (
       await searchSearxng(query, {
         engines: ['bing news'],
         pageno: 1,
         language: 'en',
       })
     ).results;
+    return results.map(normalizeArticle).filter(Boolean);
   } catch (error) {
     console.error(`Discover search failed for "${query}":`, error);
     try {
-      return await searchNewsFallback(query);
+      return (await searchNewsFallback(query)).filter(Boolean);
     } catch (fallbackError) {
       console.error(`Discover fallback failed for "${query}":`, fallbackError);
       return [];

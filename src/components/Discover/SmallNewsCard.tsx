@@ -10,11 +10,7 @@ const SmallNewsCard = ({ item }: { item: Discover }) => (
     <div className="relative aspect-video overflow-hidden">
       <img
         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-        src={
-          new URL(item.thumbnail).origin +
-          new URL(item.thumbnail).pathname +
-          `?id=${new URL(item.thumbnail).searchParams.get('id')}`
-        }
+        src={item.thumbnail}
         alt={item.title}
       />
     </div>
