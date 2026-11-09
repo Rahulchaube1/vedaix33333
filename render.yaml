@@ -4,7 +4,7 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free
     domains:
       - vedaix.com
       - www.vedaix.com
@@ -57,7 +57,3 @@ services:
         sync: false
       - key: BRAVE_API_KEY
         sync: false
-    disk:
-      name: vedaix-data
-      mountPath: /home/vane/data
-      sizeGB: 1
