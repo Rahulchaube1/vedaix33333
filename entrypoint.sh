@@ -27,8 +27,8 @@ else
 fi
 
 cd /home/vane
-echo "Ensuring Next.js manifests..."
-mkdir -p /home/vane/.next/server
+echo "Ensuring application directories and manifests..."
+mkdir -p /home/vane/data /home/vane/uploads /home/vane/data/data /home/vane/.next/server
 if [ ! -f /home/vane/.next/server/preview-props.json ]; then
   echo '{"previewModeId":"","previewModeSigningKey":"","previewModeEncryptionKey":""}' > /home/vane/.next/server/preview-props.json
 fi

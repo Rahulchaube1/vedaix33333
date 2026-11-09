@@ -2,12 +2,27 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const DATA_DIR = process.env.DATA_DIR || process.cwd();
-const dbPath = path.join(DATA_DIR, './data/db.sqlite');
+const rawDataDir = process.env.DATA_DIR || process.cwd();
+const dataDir =
+  rawDataDir.endsWith('/data') || rawDataDir.endsWith('\\data')
+    ? rawDataDir
+    : path.join(rawDataDir, 'data');
+
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+const dbPath = path.join(dataDir, 'db.sqlite');
 
 const db = new Database(dbPath);
 
-const migrationsFolder = path.join(DATA_DIR, 'drizzle');
+let migrationsFolder = path.join(process.cwd(), 'drizzle');
+if (!fs.existsSync(migrationsFolder)) {
+  const altFolder = path.join(rawDataDir, 'drizzle');
+  if (fs.existsSync(altFolder)) {
+    migrationsFolder = altFolder;
+  }
+}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS ran_migrations (

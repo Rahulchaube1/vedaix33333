@@ -5,10 +5,17 @@ import { hashObj } from '../utils/hash';
 import { getModelProvidersUIConfigSection } from '../models/providers';
 
 class ConfigManager {
-  configPath: string = path.join(
-    process.env.DATA_DIR || process.cwd(),
-    '/data/config.json',
-  );
+  configPath: string = (() => {
+    const rawDataDir = process.env.DATA_DIR || process.cwd();
+    const dataDir =
+      rawDataDir.endsWith('/data') || rawDataDir.endsWith('\\data')
+        ? rawDataDir
+        : path.join(rawDataDir, 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    return path.join(dataDir, 'config.json');
+  })();
   configVersion = 1;
   currentConfig: Config = {
     version: this.configVersion,
