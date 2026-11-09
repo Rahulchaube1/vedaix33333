@@ -10,6 +10,9 @@ interface GroqConfig {
   apiKey: string;
 }
 
+const supportsChatCompletions = (modelKey: string) =>
+  !/(whisper|orpheus|prompt-guard|safeguard|guard)/i.test(modelKey);
+
 const providerConfigFields: UIConfigField[] = [
   {
     type: 'password',
@@ -41,12 +44,21 @@ class GroqProvider extends BaseModelProvider<GroqConfig> {
 
     const defaultChatModels: Model[] = [];
 
-    data.data.forEach((m: any) => {
-      defaultChatModels.push({
-        key: m.id,
-        name: m.id,
+    data.data
+      .filter((m: any) => supportsChatCompletions(m.id))
+      .sort((a: any, b: any) => {
+        const preferred = ['openai/gpt-oss-20b', 'qwen/qwen3.8-27b'];
+        const aIndex = preferred.indexOf(a.id);
+        const bIndex = preferred.indexOf(b.id);
+        return (aIndex === -1 ? preferred.length : aIndex) -
+          (bIndex === -1 ? preferred.length : bIndex);
+      })
+      .forEach((m: any) => {
+        defaultChatModels.push({
+          key: m.id,
+          name: m.id,
+        });
       });
-    });
 
     return {
       embedding: [],
@@ -63,7 +75,12 @@ class GroqProvider extends BaseModelProvider<GroqConfig> {
         ...defaultModels.embedding,
         ...configProvider.embeddingModels,
       ],
-      chat: [...defaultModels.chat, ...configProvider.chatModels],
+      chat: [
+        ...defaultModels.chat,
+        ...configProvider.chatModels.filter((model) =>
+          supportsChatCompletions(model.key),
+        ),
+      ],
     };
   }
 
