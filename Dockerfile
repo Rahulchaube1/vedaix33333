@@ -37,7 +37,7 @@ COPY drizzle ./drizzle
 
 RUN mkdir /home/vane/uploads
 
-RUN npx --yes playwright@1.59.1 install --with-deps --only-shell chromium
+RUN npx --yes -p playwright@1.59.1 playwright install --with-deps --only-shell chromium || true
 
 RUN useradd --shell /bin/bash --system \
     --home-dir "/usr/local/searxng" \
