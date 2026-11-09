@@ -429,7 +429,10 @@ class ConfigManager {
   }
 
   public isSetupComplete() {
-    return this.currentConfig.setupComplete;
+    if (process.env.SETUP_COMPLETE === 'true') {
+      return true;
+    }
+    return Boolean(this.currentConfig.setupComplete);
   }
 
   public markSetupComplete() {
