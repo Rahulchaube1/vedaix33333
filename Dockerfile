@@ -29,15 +29,15 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /home/vane
 
 COPY --from=builder /home/vane/public ./public
-COPY --from=builder /home/vane/.next/static ./public/_next/static
 COPY --from=builder /home/vane/.next/standalone ./
+COPY --from=builder /home/vane/.next/static ./.next/static
+COPY --from=builder /home/vane/.next/static ./public/_next/static
 COPY --from=builder /home/vane/data ./data
 COPY drizzle ./drizzle
 
 RUN mkdir /home/vane/uploads
 
-RUN yarn add playwright
-RUN yarn playwright install --with-deps --only-shell chromium
+RUN npx --yes playwright@1.59.1 install --with-deps --only-shell chromium
 
 RUN useradd --shell /bin/bash --system \
     --home-dir "/usr/local/searxng" \

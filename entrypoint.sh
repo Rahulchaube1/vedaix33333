@@ -27,6 +27,12 @@ else
 fi
 
 cd /home/vane
+echo "Ensuring Next.js manifests..."
+mkdir -p /home/vane/.next/server
+if [ ! -f /home/vane/.next/server/preview-props.json ]; then
+  echo '{"previewModeId":"","previewModeSigningKey":"","previewModeEncryptionKey":""}' > /home/vane/.next/server/preview-props.json
+fi
+
 echo "Starting Vane..."
 
 exec node server.js
