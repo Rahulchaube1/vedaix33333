@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, BrainCircuit } from 'lucide-react';
+import { ChevronDown, ChevronUp, BrainCircuit, Sparkles } from 'lucide-react';
 
 interface ThinkBoxProps {
   content: string;
@@ -20,17 +20,18 @@ const ThinkBox = ({ content, thinkingEnded }: ThinkBoxProps) => {
   }, [thinkingEnded]);
 
   return (
-    <div className="my-4 bg-light-secondary/50 dark:bg-dark-secondary/50 rounded-xl border border-light-200 dark:border-dark-200 overflow-hidden">
+    <div className="my-4 overflow-hidden rounded-2xl border border-[#d7f35b]/20 bg-[#d7f35b]/[0.04] shadow-[0_12px_40px_rgba(215,243,91,0.04)]">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between px-4 py-1 text-black/90 dark:text-white/90 hover:bg-light-200 dark:hover:bg-dark-200 transition duration-200"
+        className="flex w-full items-center justify-between px-4 py-3 text-black/90 transition duration-200 hover:bg-[#d7f35b]/[0.06] dark:text-white/90"
       >
         <div className="flex items-center space-x-2">
-          <BrainCircuit
-            size={20}
-            className="text-[#9C27B0] dark:text-[#CE93D8]"
-          />
-          <p className="font-medium text-sm">Thinking Process</p>
+          {thinkingEnded ? (
+            <Sparkles size={18} className="text-[#86a500] dark:text-[#d7f35b]" />
+          ) : (
+            <BrainCircuit size={18} className="animate-pulse text-[#86a500] dark:text-[#d7f35b]" />
+          )}
+          <p className="text-sm font-semibold">{thinkingEnded ? 'Thought process' : 'Vedaix is thinking'}</p>
         </div>
         {isExpanded ? (
           <ChevronUp size={18} className="text-black/70 dark:text-white/70" />
@@ -40,7 +41,7 @@ const ThinkBox = ({ content, thinkingEnded }: ThinkBoxProps) => {
       </button>
 
       {isExpanded && (
-        <div className="px-4 py-3 text-black/80 dark:text-white/80 text-sm border-t border-light-200 dark:border-dark-200 bg-light-100/50 dark:bg-dark-100/50 whitespace-pre-wrap">
+        <div className="border-t border-[#d7f35b]/10 bg-black/[0.02] px-4 py-3 text-sm leading-relaxed text-black/70 whitespace-pre-wrap dark:bg-white/[0.02] dark:text-white/70">
           {content}
         </div>
       )}

@@ -46,12 +46,25 @@ const EmptyChat = () => {
       <div className="absolute w-full flex flex-row items-center justify-end mr-5 mt-5">
         <SettingsButtonMobile />
       </div>
-      <div className="flex flex-col items-center justify-center min-h-screen max-w-screen-sm mx-auto p-2 space-y-4">
-        <div className="flex flex-col items-center justify-center w-full space-y-8">
-          <h2 className="text-black/70 dark:text-white/70 text-3xl font-medium -mt-8">
-            Research begins here.
-          </h2>
+      <div className="flex min-h-screen flex-col items-center justify-center px-2 pb-20 pt-10 sm:px-6 lg:pb-10">
+        <div className="flex w-full max-w-[720px] flex-col items-center justify-center gap-6">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d7f35b] text-2xl text-[#17200e] shadow-[0_0_40px_rgba(215,243,91,0.12)]">
+            ✦
+          </div>
+          <div className="text-center">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-black/40 dark:text-white/40">
+              Search beyond the obvious
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight text-black dark:text-white sm:text-4xl">
+              What do you want to know?
+            </h2>
+          </div>
           <EmptyChatMessageInput />
+          <div className="flex flex-wrap justify-center gap-2 text-xs text-black/50 dark:text-white/50">
+            <span className="rounded-full border border-light-200 px-3 py-1.5 dark:border-dark-200">Research a topic</span>
+            <span className="rounded-full border border-light-200 px-3 py-1.5 dark:border-dark-200">Compare ideas</span>
+            <span className="rounded-full border border-light-200 px-3 py-1.5 dark:border-dark-200">Find the latest</span>
+          </div>
         </div>
         {(showWeather || showNews) && (
           <div className="flex flex-col w-full gap-4 mt-2 sm:flex-row sm:justify-center">

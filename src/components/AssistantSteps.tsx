@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ChevronUp,
   BookSearch,
+  Check,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
@@ -77,16 +78,15 @@ const AssistantSteps = ({
   if (!block || block.data.subSteps.length === 0) return null;
 
   return (
-    <div className="rounded-lg bg-light-secondary dark:bg-dark-secondary border border-light-200 dark:border-dark-200 overflow-hidden">
+    <div className="overflow-hidden rounded-2xl border border-light-200 bg-light-secondary/70 dark:border-dark-200 dark:bg-dark-secondary/70">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between p-3 hover:bg-light-200 dark:hover:bg-dark-200 transition duration-200"
       >
         <div className="flex items-center gap-2">
-          <Brain className="w-4 h-4 text-black dark:text-white" />
-          <span className="text-sm font-medium text-black dark:text-white">
-            Research Progress ({block.data.subSteps.length}{' '}
-            {block.data.subSteps.length === 1 ? 'step' : 'steps'})
+          <Brain className="h-4 w-4 text-[#86a500] dark:text-[#d7f35b]" />
+          <span className="text-sm font-semibold text-black dark:text-white">
+            {loading && isLast ? 'Building your answer' : 'Research complete'}
           </span>
         </div>
         {isExpanded ? (
@@ -120,9 +120,9 @@ const AssistantSteps = ({
                   >
                     <div className="flex flex-col items-center -mt-0.5">
                       <div
-                        className={`rounded-full p-1.5 bg-light-100 dark:bg-dark-100 text-black/70 dark:text-white/70 ${isStreaming ? 'animate-pulse' : ''}`}
+                        className={`rounded-full p-1.5 text-black/70 dark:text-white/70 ${isStreaming ? 'bg-[#d7f35b] text-[#17200e] animate-pulse' : 'bg-light-100 dark:bg-dark-100'}`}
                       >
-                        {getStepIcon(step)}
+                        {isStreaming ? getStepIcon(step) : <Check className="h-4 w-4" />}
                       </div>
                       {index < block.data.subSteps.length - 1 && (
                         <div className="w-0.5 flex-1 min-h-[20px] bg-light-200 dark:bg-dark-200 mt-1.5" />

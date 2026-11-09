@@ -195,7 +195,7 @@ class OpenAILLM extends BaseLLM<OpenAIConfig> {
   }
 
   async generateObject<T>(input: GenerateObjectInput): Promise<T> {
-    const response = await this.openAIClient.chat.completions.parse({
+    const request = {
       messages: this.convertToOpenAIMessages(input.messages),
       model: this.config.model,
       temperature:
@@ -209,24 +209,44 @@ class OpenAILLM extends BaseLLM<OpenAIConfig> {
         this.config.options?.frequencyPenalty,
       presence_penalty:
         input.options?.presencePenalty ?? this.config.options?.presencePenalty,
-      response_format: zodResponseFormat(input.schema, 'object'),
-    });
+    };
 
-    if (response.choices && response.choices.length > 0) {
+    const parseResponse = (content: string | null): T => {
+      if (!content) throw new Error('No structured response from OpenAI');
+
       try {
         return input.schema.parse(
-          JSON.parse(
-            repairJson(response.choices[0].message.content!, {
-              extractJson: true,
-            }) as string,
-          ),
+          JSON.parse(repairJson(content, { extractJson: true }) as string),
         ) as T;
       } catch (err) {
         throw new Error(`Error parsing response from OpenAI: ${err}`);
       }
-    }
+    };
 
-    throw new Error('No response from OpenAI');
+    try {
+      const response = await this.openAIClient.chat.completions.parse({
+        ...request,
+        response_format: zodResponseFormat(input.schema, 'object'),
+      });
+      return parseResponse(response.choices[0]?.message.content || null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (!/json output|response_format|structured output/i.test(message)) {
+        throw error;
+      }
+
+      const fallbackMessages = [...request.messages];
+      const firstMessage = fallbackMessages[0];
+      if (firstMessage?.role === 'system') {
+        firstMessage.content = `${firstMessage.content}\nReturn only valid JSON matching this schema: ${JSON.stringify(z.toJSONSchema(input.schema))}`;
+      }
+
+      const fallback = await this.openAIClient.chat.completions.create({
+        ...request,
+        messages: fallbackMessages,
+      });
+      return parseResponse(fallback.choices[0]?.message.content || null);
+    }
   }
 
   async *streamObject<T>(input: GenerateObjectInput): AsyncGenerator<T> {

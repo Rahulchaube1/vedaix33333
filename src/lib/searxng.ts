@@ -22,9 +22,15 @@ export const searchSearxng = async (
   query: string,
   opts?: SearxngSearchOptions,
 ) => {
-  const searxngURL = getSearxngURL();
+  const searxngURL = getSearxngURL().replace(/\/$/, '');
 
-  const url = new URL(`${searxngURL}/search?format=json`);
+  if (!/^https?:\/\//i.test(searxngURL)) {
+    throw new Error(
+      'SearXNG is not configured. Set SEARXNG_API_URL to an http:// or https:// URL.',
+    );
+  }
+
+  const url = new URL('/search?format=json', searxngURL);
   url.searchParams.append('q', query);
 
   if (opts) {
@@ -59,6 +65,11 @@ export const searchSearxng = async (
   } catch (err: any) {
     if (err.name === 'AbortError') {
       throw new Error('SearXNG search timed out');
+    }
+    if (err.code === 'ECONNREFUSED' || err.cause?.code === 'ECONNREFUSED') {
+      throw new Error(
+        `SearXNG is unavailable at ${searxngURL}. Start SearXNG or update SEARXNG_API_URL.`,
+      );
     }
     throw err;
   } finally {

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: vedaix
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: DATA_DIR
+        value: /home/vane
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://vedaix.com
+      - key: SEARXNG_API_URL
+        value: http://localhost:8080
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: AUTH_GOOGLE_ID
+        sync: false
+      - key: AUTH_GOOGLE_SECRET
+        sync: false

@@ -61,6 +61,16 @@ We'd like to thank the following partners for their generous support:
 
 ## Installation
 
+### Render and Google sign-in
+
+The repository includes `render.yaml` for a Docker deployment with the bundled SearXNG service. Set `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` as Render environment variables, and add this Google OAuth redirect URI in Google Cloud:
+
+```text
+https://vedaix.com/api/auth/callback/google
+```
+
+Set `NEXT_PUBLIC_APP_URL` to the final public URL if the custom domain is different. Add `vedaix.com` as a custom domain in Render and point its DNS records to the values Render provides.
+
 There are mainly 2 ways of installing Vane - With Docker, Without Docker. Using Docker is highly recommended.
 
 ### Getting Started with Docker (Recommended)

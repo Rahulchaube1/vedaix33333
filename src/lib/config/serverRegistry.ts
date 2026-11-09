@@ -12,4 +12,7 @@ export const getConfiguredModelProviderById = (
 };
 
 export const getSearxngURL = () =>
-  configManager.getConfig('search.searxngURL', '');
+  configManager.getConfig(
+    'search.searxngURL',
+    process.env.SEARXNG_API_URL || 'http://localhost:8080',
+  ) || process.env.SEARXNG_API_URL || 'http://localhost:8080';

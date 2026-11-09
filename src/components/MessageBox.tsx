@@ -11,6 +11,8 @@ import {
   Layers3,
   Plus,
   CornerDownRight,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import Markdown, { MarkdownToJSX, RuleType } from 'markdown-to-jsx';
 import Copy from './MessageActions/Copy';
@@ -116,6 +118,26 @@ const MessageBox = ({
           ref={dividerRef}
           className="flex flex-col space-y-6 w-full lg:w-9/12"
         >
+          {section.message.status === 'error' && (
+            <div className="flex items-start justify-between gap-4 rounded-2xl border border-red-500/20 bg-red-500/[0.06] p-4">
+              <div>
+                <p className="text-sm font-semibold text-black dark:text-white">
+                  Vedaix could not finish this answer
+                </p>
+                <p className="mt-1 text-sm text-black/60 dark:text-white/60">
+                  Check your provider and SearXNG settings, then try the question again.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => rewrite(section.message.messageId)}
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-black px-3 py-2 text-xs font-semibold text-white transition hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+              >
+                <RotateCcw size={14} /> Retry
+              </button>
+            </div>
+          )}
+
           {sources.length > 0 && (
             <div className="flex flex-col space-y-2">
               <div className="flex flex-row items-center space-x-2">
@@ -162,9 +184,9 @@ const MessageBox = ({
           <div className="flex flex-col space-y-2">
             {sources.length > 0 && (
               <div className="flex flex-row items-center space-x-2">
-                <Disc3
+                <Sparkles
                   className={cn(
-                    'text-black dark:text-white',
+                    'text-[#86a500] dark:text-[#d7f35b]',
                     isLast && loading ? 'animate-spin' : 'animate-none',
                   )}
                   size={20}
